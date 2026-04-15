@@ -93,9 +93,10 @@ class BroadcastService(private val ctx: Context) {
                     val (body, filename) = if (fileUriString != null) {
                         val uri = Uri.parse(fileUriString)
                         if (uri.scheme != "content") {
-                            Log.w(TAG, "file_uri must use the content:// scheme, got ${uri.scheme}://. Aborting.")
+                            Log.w(TAG, "file_uri must use the content:// scheme, got '${uri.scheme}'. Aborting.")
                             return@launch
                         }
+                        // fileStat() throws on invalid/missing URI; caught below
                         val stat = fileStat(ctx, uri)
                         val body = ContentUriRequestBody(ctx.contentResolver, uri, stat.size)
                         Pair(body, filenameOverride.ifEmpty { stat.filename })
