@@ -42,7 +42,7 @@ jobs:
             || echo "PR already exists for this branch"
 
       - name: Open draft PR (conflicted merge)
-        if: steps.sync.outcome == 'failure'
+        if: steps.sync.outcome == 'failure' && steps.sync.outputs.merge_conflict == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -53,3 +53,9 @@ jobs:
             --title "[CONFLICTS] Sync with upstream ntfy-android ($(date +%Y-%m-%d))" \
             --body "Automated merge of binwiederhier/ntfy-android@main hit conflicts. Conflict markers are committed as-is on this branch — resolve manually, then mark this PR ready for review." \
             || echo "PR already exists for this branch"
+
+      - name: Fail on non-conflict sync error
+        if: steps.sync.outcome == 'failure' && steps.sync.outputs.merge_conflict != 'true'
+        run: |
+          echo "sync-upstream.sh failed for a reason other than a merge conflict (e.g. a git push failure). Failing this job so the failure is visible instead of being silently swallowed by continue-on-error."
+          exit 1
