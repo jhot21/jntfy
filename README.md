@@ -1,3 +1,16 @@
+# jntfy (fork of ntfy Android App)
+**This is a personal fork of [binwiederhier/ntfy-android](https://github.com/binwiederhier/ntfy-android), maintained at [jhot21/jntfy](https://github.com/jhot21/jntfy).**
+It exists to carry [upstream PR #175](https://github.com/binwiederhier/ntfy-android/pull/175) ("SEND_MESSAGE intent file support") until it's merged upstream, and is kept in sync with upstream via an automated weekly merge (see [`scripts/sync-upstream.sh`](scripts/sync-upstream.sh) and [`.github/workflows/sync-upstream.yml`](.github/workflows/sync-upstream.yml)).
+
+**Differences from upstream:**
+* Includes the changes from [PR #175](https://github.com/binwiederhier/ntfy-android/pull/175): adds `file_uri` and `filename` extras to the `io.heckel.ntfy.SEND_MESSAGE` broadcast intent, for sending file attachments via intent.
+* Rebranded so it can be installed side-by-side with the official app: `applicationId` is `me.jhot.jntfy` (was `io.heckel.ntfy`), app name is "jntfy", and output APKs are named `jntfy-*.apk`. The underlying package/namespace, code, and behavior are otherwise unchanged from upstream.
+* Signed with a different key than the official releases (see below) — do not expect APKs from this fork's releases page to match the official fingerprint.
+
+For everything else — the official app, F-Droid/Play Store listings, translations, upstream issue tracker — see the upstream project linked above.
+
+---
+
 # ntfy Android App
 This is the Android app for [ntfy](https://github.com/binwiederhier/ntfy) ([ntfy.sh](https://ntfy.sh)). You can find the app in [F-Droid](https://f-droid.org/packages/io.heckel.ntfy/) or the [Play Store](https://play.google.com/store/apps/details?id=io.heckel.ntfy), 
 or as .apk files on the [GitHub releases page](https://github.com/binwiederhier/ntfy-android/releases).
