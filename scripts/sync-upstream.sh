@@ -21,14 +21,17 @@ git merge --no-ff FETCH_HEAD -m "Sync with upstream binwiederhier/ntfy-android@$
 MERGE_STATUS=$?
 set -e
 
-git push origin "${SYNC_BRANCH}" --force-with-lease
-
+# Write outputs BEFORE push so they're recorded even if push fails
 echo "sync_branch=${SYNC_BRANCH}" >> "${GITHUB_OUTPUT:-/dev/stdout}"
 
 if [ "${MERGE_STATUS}" -ne 0 ]; then
   echo "merge_conflict=true" >> "${GITHUB_OUTPUT:-/dev/stdout}"
-  exit 1
 else
   echo "merge_conflict=false" >> "${GITHUB_OUTPUT:-/dev/stdout}"
-  exit 0
 fi
+
+# Push happens after outputs are written, so a push failure doesn't hide merge status
+git push origin "${SYNC_BRANCH}" --force-with-lease
+
+# Exit with merge status (0 for clean merge, 1 for conflicts)
+exit "${MERGE_STATUS}"
