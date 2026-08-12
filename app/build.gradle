@@ -13,7 +13,7 @@ android {
     compileSdkVersion 36
 
     defaultConfig {
-        applicationId "io.heckel.ntfy"
+        applicationId "me.jhot.jntfy"
         minSdkVersion 26
         targetSdkVersion 36
 
@@ -84,6 +84,13 @@ android.applicationVariants.all { variant ->
     def shouldProcessGoogleServices = variant.flavorName == "play"
     def googleTask = tasks.named("process${variant.name.capitalize()}GoogleServices").get()
     googleTask.enabled = shouldProcessGoogleServices
+}
+
+// Renames output APKs to jntfy-<flavor>-<buildtype>-<versionName>.apk
+android.applicationVariants.all { variant ->
+    variant.outputs.all { output ->
+        outputFileName = "jntfy-${variant.flavorName}-${variant.buildType.name}-${variant.versionName}.apk"
+    }
 }
 
 dependencies {
