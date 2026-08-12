@@ -33,26 +33,36 @@ jobs:
         if: steps.sync.outcome == 'success'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SYNC_BRANCH: ${{ steps.sync.outputs.sync_branch }}
         run: |
-          gh pr create \
-            --base main \
-            --head "${{ steps.sync.outputs.sync_branch }}" \
-            --title "Sync with upstream ntfy-android ($(date +%Y-%m-%d))" \
-            --body "Automated merge of binwiederhier/ntfy-android@main. Merged cleanly, no conflicts." \
-            || echo "PR already exists for this branch"
+          existing=$(gh pr list --head "$SYNC_BRANCH" --json number --jq 'length')
+          if [ "$existing" -eq 0 ]; then
+            gh pr create \
+              --base main \
+              --head "$SYNC_BRANCH" \
+              --title "Sync with upstream ntfy-android ($(date +%Y-%m-%d))" \
+              --body "Automated merge of binwiederhier/ntfy-android@main. Merged cleanly, no conflicts."
+          else
+            echo "PR already exists for branch $SYNC_BRANCH, skipping."
+          fi
 
       - name: Open draft PR (conflicted merge)
         if: steps.sync.outcome == 'failure' && steps.sync.outputs.merge_conflict == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SYNC_BRANCH: ${{ steps.sync.outputs.sync_branch }}
         run: |
-          gh pr create \
-            --draft \
-            --base main \
-            --head "${{ steps.sync.outputs.sync_branch }}" \
-            --title "[CONFLICTS] Sync with upstream ntfy-android ($(date +%Y-%m-%d))" \
-            --body "Automated merge of binwiederhier/ntfy-android@main hit conflicts. Conflict markers are committed as-is on this branch — resolve manually, then mark this PR ready for review." \
-            || echo "PR already exists for this branch"
+          existing=$(gh pr list --head "$SYNC_BRANCH" --json number --jq 'length')
+          if [ "$existing" -eq 0 ]; then
+            gh pr create \
+              --draft \
+              --base main \
+              --head "$SYNC_BRANCH" \
+              --title "[CONFLICTS] Sync with upstream ntfy-android ($(date +%Y-%m-%d))" \
+              --body "Automated merge of binwiederhier/ntfy-android@main hit conflicts. Conflict markers are committed as-is on this branch — resolve manually, then mark this PR ready for review."
+          else
+            echo "PR already exists for branch $SYNC_BRANCH, skipping."
+          fi
 
       - name: Fail on non-conflict sync error
         if: steps.sync.outcome == 'failure' && steps.sync.outputs.merge_conflict != 'true'

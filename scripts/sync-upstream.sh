@@ -21,6 +21,11 @@ git merge --no-ff FETCH_HEAD -m "Sync with upstream binwiederhier/ntfy-android@$
 MERGE_STATUS=$?
 set -e
 
+if [ "${MERGE_STATUS}" -ne 0 ]; then
+  git add -A
+  git commit -m "WIP: conflicted sync with upstream (${DATE_TAG}) — conflict markers committed for manual resolution"
+fi
+
 # Write outputs BEFORE push so they're recorded even if push fails
 echo "sync_branch=${SYNC_BRANCH}" >> "${GITHUB_OUTPUT:-/dev/stdout}"
 
@@ -31,6 +36,7 @@ else
 fi
 
 # Push happens after outputs are written, so a push failure doesn't hide merge status
+git fetch origin "${SYNC_BRANCH}" 2>/dev/null || true
 git push origin "${SYNC_BRANCH}" --force-with-lease
 
 # Exit with merge status (0 for clean merge, 1 for conflicts)

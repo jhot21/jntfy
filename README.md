@@ -7,6 +7,8 @@ It exists to carry [upstream PR #175](https://github.com/binwiederhier/ntfy-andr
 * Rebranded so it can be installed side-by-side with the official app: `applicationId` is `me.jhot.jntfy` (was `io.heckel.ntfy`), app name is "jntfy", and output APKs are named `jntfy-*.apk`. The underlying package/namespace, code, and behavior are otherwise unchanged from upstream.
 * Signed with a different key than the official releases (see below) — do not expect APKs from this fork's releases page to match the official fingerprint.
 
+**Note on side-by-side installs:** `io.heckel.ntfy.SEND_MESSAGE` is a shared broadcast action. If both the official ntfy app and this fork are installed simultaneously, an implicit broadcast of that action is delivered to *both* apps, so a message sent that way gets published twice. Senders that need to target only this fork should call `Intent.setPackage("me.jhot.jntfy")` (or `me.jhot.jntfy.debug` for the debug build) before sending the broadcast.
+
 For everything else — the official app, F-Droid/Play Store listings, translations, upstream issue tracker — see the upstream project linked above.
 
 ---
