@@ -17,6 +17,8 @@ It exists to carry [upstream PR #175](https://github.com/binwiederhier/ntfy-andr
 
 Without these secrets set, local `./gradlew assembleFdroidRelease` builds still work, just unsigned.
 
+`versionName` is taken from the tag itself (`v1.25.2-jntfy1` → `1.25.2-jntfy1`), not from `app/build.gradle`. `versionCode` still comes from `app/build.gradle` and must be bumped by hand before tagging — the workflow downloads the previous GitHub Release's APK and fails the build if the new `versionCode` isn't strictly greater than the previous one (Android refuses to install an "update" whose `versionCode` didn't increase).
+
 For everything else — the official app, F-Droid/Play Store listings, translations, upstream issue tracker — see the upstream project linked above.
 
 ---

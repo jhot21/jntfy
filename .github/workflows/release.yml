@@ -21,11 +21,18 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      - name: Derive versionName from tag
+        id: version
+        run: |
+          # Tag "v1.25.2-jntfy1" -> versionName "1.25.2-jntfy1"
+          echo "version_name=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
       - name: Decode signing keystore
         run: echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > "${{ runner.temp }}/release.keystore"
 
       - name: Build signed release APK (fdroid flavor)
         env:
+          ORG_GRADLE_PROJECT_VERSION_NAME: ${{ steps.version.outputs.version_name }}
           ORG_GRADLE_PROJECT_RELEASE_STORE_FILE: ${{ runner.temp }}/release.keystore
           ORG_GRADLE_PROJECT_RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
           ORG_GRADLE_PROJECT_RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
@@ -35,6 +42,43 @@ jobs:
       - name: Remove keystore
         if: always()
         run: rm -f "${{ runner.temp }}/release.keystore"
+
+      - name: Locate aapt2
+        id: aapt2
+        run: |
+          AAPT2=$(find "$ANDROID_HOME/build-tools" -name aapt2 | sort -V | tail -1)
+          if [ -z "$AAPT2" ]; then
+            echo "::error::Could not find aapt2 under \$ANDROID_HOME/build-tools" >&2
+            exit 1
+          fi
+          echo "path=${AAPT2}" >> "$GITHUB_OUTPUT"
+
+      - name: Check versionCode against the previous release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AAPT2: ${{ steps.aapt2.outputs.path }}
+        run: |
+          NEW_APK=$(ls app/build/outputs/apk/fdroid/release/*.apk)
+          NEW_VERSION_CODE=$("$AAPT2" dump badging "$NEW_APK" | grep -oP "versionCode='\K[0-9]+")
+          echo "This build's versionCode: $NEW_VERSION_CODE"
+
+          PREV_TAG=$(gh release list --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null || true)
+          if [ -z "$PREV_TAG" ]; then
+            echo "No previous release found — nothing to compare against."
+            exit 0
+          fi
+          echo "Previous release: $PREV_TAG"
+
+          mkdir -p "${{ runner.temp }}/prev-release"
+          gh release download "$PREV_TAG" --pattern '*.apk' --dir "${{ runner.temp }}/prev-release"
+          PREV_APK=$(ls "${{ runner.temp }}/prev-release"/*.apk | head -1)
+          PREV_VERSION_CODE=$("$AAPT2" dump badging "$PREV_APK" | grep -oP "versionCode='\K[0-9]+")
+          echo "Previous release's versionCode: $PREV_VERSION_CODE"
+
+          if [ "$NEW_VERSION_CODE" -le "$PREV_VERSION_CODE" ]; then
+            echo "::error::versionCode $NEW_VERSION_CODE is not greater than the previous release's versionCode $PREV_VERSION_CODE (from $PREV_TAG). Bump versionCode in app/build.gradle before tagging a new release."
+            exit 1
+          fi
 
       - name: Create GitHub Release
         env:
