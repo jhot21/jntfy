@@ -30,7 +30,7 @@ jobs:
         continue-on-error: true
 
       - name: Open PR (clean merge)
-        if: steps.sync.outcome == 'success'
+        if: steps.sync.outcome == 'success' && steps.sync.outputs.has_changes == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SYNC_BRANCH: ${{ steps.sync.outputs.sync_branch }}
@@ -45,6 +45,10 @@ jobs:
           else
             echo "PR already exists for branch $SYNC_BRANCH, skipping."
           fi
+
+      - name: Nothing to sync
+        if: steps.sync.outcome == 'success' && steps.sync.outputs.has_changes == 'false'
+        run: echo "Upstream has no new commits since the last sync — nothing to do."
 
       - name: Open draft PR (conflicted merge)
         if: steps.sync.outcome == 'failure' && steps.sync.outputs.merge_conflict == 'true'
