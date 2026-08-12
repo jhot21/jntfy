@@ -9,6 +9,14 @@ It exists to carry [upstream PR #175](https://github.com/binwiederhier/ntfy-andr
 
 **Note on side-by-side installs:** `io.heckel.ntfy.SEND_MESSAGE` is a shared broadcast action. If both the official ntfy app and this fork are installed simultaneously, an implicit broadcast of that action is delivered to *both* apps, so a message sent that way gets published twice. Senders that need to target only this fork should call `Intent.setPackage("me.jhot.jntfy")` (or `me.jhot.jntfy.debug` for the debug build) before sending the broadcast.
 
+**Releasing a signed build:** pushing a tag matching `v*` (e.g. `v1.25.2-jntfy1`) triggers [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds the signed `fdroid` release APK and attaches it to a new GitHub Release. This requires four repo secrets to be set first (`gh secret set <name>` or Settings → Secrets and variables → Actions):
+* `RELEASE_KEYSTORE_BASE64` — your release keystore file, base64-encoded (`base64 -i release.keystore | pbcopy`)
+* `RELEASE_KEYSTORE_PASSWORD` — the keystore's password
+* `RELEASE_KEY_ALIAS` — the key alias inside the keystore
+* `RELEASE_KEY_PASSWORD` — the key's password
+
+Without these secrets set, local `./gradlew assembleFdroidRelease` builds still work, just unsigned.
+
 For everything else — the official app, F-Droid/Play Store listings, translations, upstream issue tracker — see the upstream project linked above.
 
 ---
