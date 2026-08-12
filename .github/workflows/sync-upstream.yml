@@ -1,0 +1,55 @@
+name: Sync upstream
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Every Monday 06:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run sync script
+        id: sync
+        run: ./scripts/sync-upstream.sh
+        continue-on-error: true
+
+      - name: Open PR (clean merge)
+        if: steps.sync.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base main \
+            --head "${{ steps.sync.outputs.sync_branch }}" \
+            --title "Sync with upstream ntfy-android ($(date +%Y-%m-%d))" \
+            --body "Automated merge of binwiederhier/ntfy-android@main. Merged cleanly, no conflicts." \
+            || echo "PR already exists for this branch"
+
+      - name: Open draft PR (conflicted merge)
+        if: steps.sync.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --draft \
+            --base main \
+            --head "${{ steps.sync.outputs.sync_branch }}" \
+            --title "[CONFLICTS] Sync with upstream ntfy-android ($(date +%Y-%m-%d))" \
+            --body "Automated merge of binwiederhier/ntfy-android@main hit conflicts. Conflict markers are committed as-is on this branch — resolve manually, then mark this PR ready for review." \
+            || echo "PR already exists for this branch"
