@@ -17,11 +17,11 @@ android {
         minSdkVersion 26
         targetSdkVersion 36
 
-        versionCode 63
+        versionCode 64
         // Overridden via -PVERSION_NAME (or the ORG_GRADLE_PROJECT_VERSION_NAME
         // env var) in CI, derived from the pushed release tag, e.g. tag
         // "v1.25.2-jntfy1" -> versionName "1.25.2-jntfy1".
-        versionName project.hasProperty('VERSION_NAME') ? project.VERSION_NAME : "1.25.2"
+        versionName project.hasProperty('VERSION_NAME') ? project.VERSION_NAME : "1.25.2-jntfy2b1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 

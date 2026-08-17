@@ -397,6 +397,12 @@ class DetailAdapter(private val activity: Activity, private val lifecycleScope: 
                         .allowZooming(true)
                         .withTransitionFrom(attachmentImageView)
                         .withHiddenStatusBar(false)
+                        .withDismissListener {
+                            // StfalconImageViewer's own visibility restore races with RecyclerView
+                            // recycling/rebinding this view, and DiffUtil skips rebinding rows whose
+                            // data didn't change, so a lost restore is never retried (see #1856).
+                            attachmentImageView.visibility = View.VISIBLE
+                        }
                         .show()
                 }
                 attachmentImageView.visibility = View.VISIBLE
