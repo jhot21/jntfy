@@ -4,6 +4,7 @@ It exists to carry [upstream PR #175](https://github.com/binwiederhier/ntfy-andr
 
 **Differences from upstream:**
 * Includes the changes from [PR #175](https://github.com/binwiederhier/ntfy-android/pull/175): adds `file_uri` and `filename` extras to the `io.heckel.ntfy.SEND_MESSAGE` broadcast intent, for sending file attachments via intent.
+* Fixes [upstream issue #1856](https://github.com/binwiederhier/ntfy/issues/1856): the attachment thumbnail in the topic list could go permanently invisible after tapping it to enlarge and returning.
 * Rebranded so it can be installed side-by-side with the official app: `applicationId` is `me.jhot.jntfy` (was `io.heckel.ntfy`), app name is "jntfy", and output APKs are named `jntfy-*.apk`. The underlying package/namespace, code, and behavior are otherwise unchanged from upstream.
 * Signed with a different key than the official releases (see below) — do not expect APKs from this fork's releases page to match the official fingerprint.
 
